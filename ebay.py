@@ -1,23 +1,40 @@
+import requests
+import bs4
+import names
+import random
+import time
+import sys
 from selenium import webdriver
-import uuid, time, names
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
-options = webdriver.ChromeOptions()
-options.add_experimental_option("excludeSwitches", ["enable-automation"])
-options.add_experimental_option("useAutomationExtension", False);
-options.add_argument("disable-infobars")
-options.add_argument('disable-extensions')
-driver = webdriver.Chrome(options=options)
-link = input("eBay Product Link: ")
-while True:
-    driver.delete_all_cookies()
-    driver.get('https://reg.ebay.com/reg/PartialReg?ru=https%3A%2F%2Fwww.ebay.com%2F')
-    time.sleep(1)
-    driver.find_element_by_xpath('//input[@id="firstname"]').send_keys(names.get_first_name())
-    driver.find_element_by_xpath('//input[@id="lastname"]').send_keys(names.get_last_name())
-    driver.find_element_by_xpath('//input[@id="email"]').send_keys('%s@gmail.com' % uuid.uuid4())
-    driver.find_element_by_xpath('//input[@id="PASSWORD"]').send_keys('Steve3142145$DSADAS525151')
-    time.sleep(0.75)
-    driver.execute_script("document.getElementById('ppaFormSbtBtn').click()")
-    driver.get(link)
-    time.sleep(0.65)
-    driver.find_element_by_xpath('//span[@class="vi-atw-txt"]').click()
+
+product_link = input("Product Link: ")
+class EbayBot:
+    def __init__(self):
+        options = webdriver.ChromeOptions()
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option("useAutomationExtension", False);
+        options.add_argument("disable-infobars")
+        options.add_argument('disable-extensions')
+        self.driver = webdriver.Chrome(options=options)
+    def watchitem(self):
+        first_name = names.get_first_name().replace(" ", "")
+        last_name = names.get_last_name().replace(" ", "")
+        email = f"{first_name.lower()}.{last_name.lower()}@hotmail.rs"
+        password = f"{first_name}{random.randrange(1, 10000)}{random.choice(['$#@', '$%', '$*^()'])}"
+        sys.stdout.write(f"\rFull Name: {first_name} {last_name} | Email: {email} | Password: {password}")
+        sys.stdout.flush()
+        self.driver.get("https://reg.ebay.com/reg/PartialReg")
+        WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//div[@class="giant-text-2"]')))
+        self.driver.find_element_by_xpath('//input[@name="firstname"]').send_keys(first_name)
+        self.driver.find_element_by_xpath('//input[@name="lastname"]').send_keys(last_name)
+        self.driver.find_element_by_xpath('//input[@name="email"]').send_keys(email)
+        self.driver.find_element_by_xpath('//input[@name="PASSWORD"]').send_keys(password)
+        self.driver.execute_script('document.querySelector("#ppaFormSbtBtn").click()')
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//a[contains(text(),'Daily Deals')]")))
+
+eBay = EbayBot()
+eBay.watchitem()
+
